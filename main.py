@@ -55,7 +55,7 @@ def send_questions_to_telegram(questions):
     base_url = "https://api.telegram.org/bot7491440082:AAHGhMSot01aN3VLH9zn-G_0aPsRd3BMJZk/sendPoll"
     chat_id = "-4674739167"
 
-    delay_between_requests = 5  # seconds between each poll
+    delay_between_requests = 2  # seconds between each poll
 
     for q in questions:
         # Basic validations
