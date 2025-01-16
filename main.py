@@ -3,43 +3,55 @@ import requests
 import time
 import json
 
+# Function to parse questions and options from input text
 def read_questions_from_text(input_text):
     questions = []
-    # Split input text into lines and strip leading spaces from each line
-    lines = [line.lstrip() for line in input_text.splitlines()]
+    lines = [line.strip() for line in input_text.splitlines() if line.strip()]  # Remove empty lines
     question = ''
     options = []
     for line in lines:
-        if line.startswith('##'):
+        if line.startswith('##'):  # Detect new question
             if question:
                 questions.append({'question': question, 'options': options})
-                question = ''
                 options = []
             question = line[2:].strip()
-        elif line.startswith(''):
-            options.append(line[2:].strip())
-    if question:  # Check if there is a question at the end without a following ##
+        else:  # Add options for the current question
+            options.append(line.strip())
+    if question:  # Append the last question
         questions.append({'question': question, 'options': options})
     return questions
 
+# Function to validate questions before sending them
+def validate_questions(questions):
+    valid_questions = []
+    for q in questions:
+        if q['question'] and len(q['options']) >= 2 and all(q['options']):
+            valid_questions.append(q)
+        else:
+            st.warning(f"Invalid question or options: {q}")
+    return valid_questions
+
+# Function to send questions to Telegram
 def send_questions_to_telegram(questions):
-    base_url = "https://api.telegram.org/bot7491440082:AAHGhMSot01aN3VLH9zn-G_0aPsRd3BMJZk/sendPoll"  # Update with your Telegram bot token
-    chat_id = "-4674739167"  # Update with your chat ID
-    delay_between_requests = 5  # seconds
+    base_url = "https://api.telegram.org/bot<your-bot-token>/sendPoll"  # Replace with your Telegram bot token
+    chat_id = "<your-chat-id>"  # Replace with your Telegram chat ID
+    delay_between_requests = 5  # Delay in seconds between each request
+
     for q in questions:
         parameters = {
             "chat_id": chat_id,
             "question": q['question'],
             "options": json.dumps(q['options']),
             "type": "quiz",
-            "correct_option_id": 0
+            "correct_option_id": 0  # Modify this if you want to set a different correct option
         }
         try:
             response = requests.post(base_url, data=parameters)
             response_data = response.json()
-            st.write(response_data)  # Log the response data for debugging
 
-            if not response_data.get("ok"):
+            if response_data.get("ok"):
+                st.success(f"Question sent: {q['question']}")
+            else:
                 st.error(f"Failed to send question: {q['question']}. Error: {response_data.get('description')}")
         except requests.RequestException as e:
             st.error(f"Request failed: {e}")
@@ -47,18 +59,25 @@ def send_questions_to_telegram(questions):
         # Delay before sending the next question
         time.sleep(delay_between_requests)
 
+# Main function to process input text and send questions
 def process_questions(input_text):
     questions = read_questions_from_text(input_text)
-    send_questions_to_telegram(questions)
+    validated_questions = validate_questions(questions)
+    if validated_questions:
+        send_questions_to_telegram(validated_questions)
+    else:
+        st.error("No valid questions to send.")
 
+# Streamlit UI
 st.title("Send Quiz Questions to Telegram")
-st.write("Paste your questions below. Format questions with '##' for questions and '' for options.")
+st.write("Paste your questions below. Format questions with '##' for questions and each option on a new line.")
 
-# Add a text area for user input
+# Text area for user input
 input_text = st.text_area("Paste Questions Here", height=300)
 
+# Button to trigger the question sending process
 if st.button("Send to Telegram"):
-    if input_text.strip():  # Check if the text area is not empty
+    if input_text.strip():  # Ensure the input is not empty
         process_questions(input_text)
     else:
         st.error("Please paste some questions before clicking the button.")
