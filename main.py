@@ -33,8 +33,8 @@ def validate_questions(questions):
 
 # Function to send questions to Telegram
 def send_questions_to_telegram(questions):
-    base_url = "https://api.telegram.org/bot<your-bot-token>/sendPoll"  # Replace with your Telegram bot token
-    chat_id = "<your-chat-id>"  # Replace with your Telegram chat ID
+    base_url = "https://api.telegram.org/bot7491440082:AAHGhMSot01aN3VLH9zn-G_0aPsRd3BMJZk/sendPoll"  # Replace with your Telegram bot token
+    chat_id = "-4674739167"  # Replace with your Telegram chat ID
     delay_between_requests = 5  # Delay in seconds between each request
 
     for q in questions:
